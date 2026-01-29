@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face LED Controller</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="app-container">
+    <header class="top-bar">
+        <h1 class="app-title">Face LED</h1>
+        <div class="header-status">
+            <div class="status-chip">
+                <span class="label">E:</span>
+                <span id="eyesStatus" class="value">--</span>
+            </div>
+            <div class="status-chip">
+                <span class="label">M:</span>
+                <span id="mouthStatus" class="value">--</span>
+            </div>
+            <div id="connectionStatusHeader" class="status-indicator disconnected"></div>
+        </div>
+        <button id="menuToggle" class="icon-btn">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+    </header>
+
+    <div class="main-layout">
+        <div class="video-section">
+            <div class="video-container" id="videoContainer">
+                <video id="webcam" autoplay playsinline></video>
+                <canvas id="output_canvas"></canvas>
+                <div id="loading" class="loading-overlay">
+                    <span class="material-symbols-outlined spin">settings</span>
+                    <p>Loading MediaPipe...</p>
+                </div>
+                <div id="errorMsg" class="error-overlay hidden"></div>
+            </div>
+        </div>
+
+        <aside class="controls-section" id="controlsSidebar">
+            <div class="sidebar-header">
+                <h2>Settings</h2>
+                <button id="closeMenuBtn" class="icon-btn mobile-only">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Connection</h3>
+                <div class="connection-btns">
+                    <button id="connectBleBtn" class="btn primary">
+                        <span class="material-symbols-outlined">bluetooth</span>
+                        Connect Bluetooth
+                    </button>
+                </div>
+                <div id="connectionStatus" class="status-text disconnected">Disconnected</div>
+            </div>
+
+            <div class="control-group">
+                <h3>Visuals</h3>
+                <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="overlayToggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Show Overlay</span>
+                </div>
+                <div class="select-container" style="margin-top: 10px;">
+                    <label for="rotationSelect">Matrix Rotation:</label>
+                    <select id="rotationSelect" class="select-input">
+                        <option value="0">0°</option>
+                        <option value="90">90° CW</option>
+                        <option value="180">180°</option>
+                        <option value="270">270° CW</option>
+                    </select>
+                </div>
+                <div class="toggle-container" style="margin-top: 10px;">
+                    <label class="switch">
+                        <input type="checkbox" id="mirrorToggle">
+                        <span class="slider round"></span>
+                    </label>
+                    <span>Mirror Mode</span>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Calibration</h3>
+                <div class="sliders-container" id="slidersContainer">
+                    <!-- Sliders will be injected here by JS -->
+                </div>
+                <button id="resetParamsBtn" class="btn secondary small">Reset Defaults</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>Debug</h3>
+                <div class="debug-info" id="debugInfo">
+                    <!-- Real-time values -->
+                </div>
+            </div>
+        </aside>
+    </div>
+    
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
