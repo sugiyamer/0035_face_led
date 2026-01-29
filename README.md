@@ -2,8 +2,6 @@
 
 A web application that analyzes facial expressions and gestures from a camera feed in real-time and displays them as abstracted expressions on an 8x8 LED matrix. It uses MediaPipe Face Landmarker and Hand Landmarker for analysis and sends dot-matrix data to connected devices (e.g., ESP32) via the Web Bluetooth API.
 
-https://github.com/sugiyamer/0035_face_led/blob/0644934a50df5f9ff8e8e1e7b1eadcae93242ed2/face_led.mp4
-
 ## Repository Structure
 
 - /: Web application (HTML/CSS/JS)
