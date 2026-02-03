@@ -81,6 +81,16 @@ When an expression or gesture changes, the app sends an 8-byte bitmap (hexadecim
 
 **Example**: `00E742424200423C\n` (Represents TT eyes and a smile).
 
+## Disclaimer and Hardware Notice
+
+This project is provided "as is" without any warranty.
+See the LICENSE file for full license terms and disclaimers.
+
+This project involves custom hardware implementation.
+Only a list of components is provided; no schematics or wiring diagrams are included.
+
+Any hardware built or used based on this project is done entirely at your own risk.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
