@@ -93,16 +93,13 @@ const Config = {
   mouthKissWidthRatio: 0.25    // Mouth Width / Face Width < this = Kiss
 };
 
-// BLE UUIDs
-const BLE_SERVICE_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e"; // Nordic UART Service
-const BLE_CHARACTERISTIC_UUID = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // RX Characteristic
-
 // --- State ---
 const state = {
   eyes: EyesIdx.MID_MID,
   mouth: MouthIdx.CLOSE,
   videoPlaying: false,
-  bleCharacteristic: null,
+  serialPort: null,
+  serialWriter: null,
   lastSent: "",
   lastSentTime: 0,
   isProcessing: false,
@@ -270,42 +267,30 @@ function showError(msg) {
   errorEl.classList.remove("hidden");
 }
 
-// --- Communication ---
+// --- Communication (Web Serial API) ---
 
-async function connectBle() {
-  if (!("bluetooth" in navigator)) {
-    alert("Web Bluetooth API not supported in this browser. Try Chrome or Edge.");
+async function connectSerial() {
+  if (!("serial" in navigator)) {
+    alert("Web Serial API not supported. Use Chrome or Edge.");
     return;
   }
 
   try {
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [
-        { namePrefix: 'FaceLED' },
-        { services: [BLE_SERVICE_UUID] }
-      ],
-      optionalServices: [BLE_SERVICE_UUID]
-    });
-
-    const server = await device.gatt.connect();
-    const service = await server.getPrimaryService(BLE_SERVICE_UUID);
-    state.bleCharacteristic = await service.getCharacteristic(BLE_CHARACTERISTIC_UUID);
-
-    device.addEventListener('gattserverdisconnected', () => {
-        onDisconnected();
-    });
+    state.serialPort = await navigator.serial.requestPort();
+    await state.serialPort.open({ baudRate: 115200 });
+    state.serialWriter = state.serialPort.writable.getWriter();
 
     onConnected();
     connectBleBtn.disabled = true;
 
   } catch (e) {
-    console.error("BLE connection failed:", e);
-    alert("Failed to connect Bluetooth: " + e.message);
+    console.error("Serial connection failed:", e);
+    alert("Failed to connect: " + e.message);
   }
 }
 
 function onConnected() {
-    connectionStatusEl.textContent = "Connected (Bluetooth)";
+    connectionStatusEl.textContent = "Connected (USB)";
     connectionStatusEl.classList.remove("disconnected");
     connectionStatusEl.classList.add("connected");
     if (connectionStatusHeaderEl) {
@@ -315,7 +300,8 @@ function onConnected() {
 }
 
 function onDisconnected() {
-    state.bleCharacteristic = null;
+    state.serialWriter = null;
+    state.serialPort = null;
     connectionStatusEl.textContent = "Disconnected";
     connectionStatusEl.classList.add("disconnected");
     connectionStatusEl.classList.remove("connected");
@@ -327,9 +313,9 @@ function onDisconnected() {
 }
 
 async function sendData(eyeIdx, mouthIdx) {
-  if (!state.bleCharacteristic) return;
+  if (!state.serialWriter) return;
 
-  // Throttling: Max 20 packets per second (50ms interval) for BLE
+  // Throttling: Max 20 packets per second (50ms interval)
   const now = performance.now();
   if (now - state.lastSentTime < 50) return;
 
@@ -337,7 +323,7 @@ async function sendData(eyeIdx, mouthIdx) {
   const mouthBytes = MOUTH_PATTERNS[mouthIdx] || MOUTH_PATTERNS[MouthIdx.CLOSE];
 
   let allBytes = new Uint8Array([...eyeBytes, ...mouthBytes]);
-  
+
   // Apply rotation
   if (state.rotation !== 0) {
     allBytes = rotate8x8(allBytes, state.rotation);
@@ -351,25 +337,16 @@ async function sendData(eyeIdx, mouthIdx) {
   const hexString = Array.from(allBytes).map(b => b.toString(16).toUpperCase().padStart(2, '0')).join('');
   const data = hexString + "\n";
 
-  if (state.lastSent === data) return; 
+  if (state.lastSent === data) return;
 
   try {
     const encoder = new TextEncoder();
-    try {
-        // Prefer writeValueWithoutResponse to reduce overhead and prevent congestion
-        await state.bleCharacteristic.writeValueWithoutResponse(encoder.encode(data));
-    } catch (bleErr) {
-        // Fallback for older browsers
-        await state.bleCharacteristic.writeValue(encoder.encode(data));
-    }
+    await state.serialWriter.write(encoder.encode(data));
     state.lastSent = data;
     state.lastSentTime = now;
   } catch (e) {
     console.error("Write error:", e);
-    // Only disconnect if it's a critical error
-    if (e.name !== 'NetworkError' && e.name !== 'NotSupportedError') {
-        onDisconnected();
-    }
+    onDisconnected();
   }
 }
 
@@ -666,7 +643,7 @@ document.getElementById('resetParamsBtn').addEventListener('click', () => {
 
 // Start
 createSliders();
-connectBleBtn.addEventListener('click', connectBle);
+connectBleBtn.addEventListener('click', connectSerial);
 overlayToggle.addEventListener('change', (e) => {
     state.showOverlay = e.target.checked;
 });
