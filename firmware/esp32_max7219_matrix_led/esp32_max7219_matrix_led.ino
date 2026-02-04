@@ -4,13 +4,13 @@
 #include <BLEUtils.h>
 #include <BLE2902.h>
 
-// MAX7219 Pins (SPI)
-// DIN -> GPIO23 (MOSI)
-// CS  -> GPIO5
-// CLK -> GPIO18 (SCK)
-#define MAX7219_DIN  23
-#define MAX7219_CS   5
-#define MAX7219_CLK  18
+// MAX7219 Pins (using left-side pins of Freenove ESP32)
+// DIN -> GPIO27
+// CS  -> GPIO26
+// CLK -> GPIO25
+#define MAX7219_DIN  27
+#define MAX7219_CS   26
+#define MAX7219_CLK  25
 
 // LedControl(DIN, CLK, CS, numDevices)
 LedControl lc = LedControl(MAX7219_DIN, MAX7219_CLK, MAX7219_CS, 1);
